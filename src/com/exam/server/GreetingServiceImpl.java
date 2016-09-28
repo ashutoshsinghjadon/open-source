@@ -45,7 +45,23 @@ public class GreetingServiceImpl extends RemoteServiceServlet implements Greetin
 		{
 			DeviceData deviceData = (DeviceData) iterator.next(); 
 		         JSONObject deviceJson = new JSONObject();
-		         deviceJson.put("address", deviceData.getAddress1());
+		         deviceJson.put("idsession", deviceData.getIdSession());
+		         deviceJson.put("idcompany", deviceData.getIdCompany());
+		         deviceJson.put("idservice", deviceData.getIdService());
+		         deviceJson.put("status", deviceData.getStatus());
+//		         deviceJson.put("part1id", deviceData.getPart1Id());
+//		         deviceJson.put("part2id", deviceData.getPart2Id());
+//		         deviceJson.put("time1", deviceData.getTime1());
+//		         deviceJson.put("time1b", deviceData.getTime1B());
+//		         deviceJson.put("time2", deviceData.getTime2());
+//		         deviceJson.put("time2b", deviceData.getTime2B());
+//		         deviceJson.put("type1id", deviceData.getType1Id());
+//		         deviceJson.put("type2name", deviceData.getType2Name());
+//		         deviceJson.put("type2id", deviceData.getType2Id());
+		         deviceJson.put("address1", deviceData.getAddress1());
+		         deviceJson.put("location1", deviceData.getLocation1());
+		         deviceJson.put("notes", deviceData.getNotes());
+		         deviceJson.put("data1", deviceData.getData1());
 		         jArray.add(deviceJson);
 		}
 		jObject.put("results", jArray);

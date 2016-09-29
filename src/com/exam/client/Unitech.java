@@ -1,7 +1,9 @@
 package com.exam.client;
 
+import java.util.ArrayList;
 import java.util.Date;
 
+import com.exam.client.dto.DeviceDTO;
 import com.exam.client.dto.EventDTO;
 import com.exam.shared.FieldVerifier;
 import com.google.gwt.core.client.EntryPoint;
@@ -15,8 +17,11 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.RootLayoutPanel;
 import com.google.gwt.user.client.ui.RootPanel;
+import com.google.gwt.user.client.ui.SplitLayoutPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 //import com.googlecode.gwt.charts.client.corechart.PieChart;
@@ -82,13 +87,32 @@ public class Unitech implements EntryPoint {
 		dialogVPanel.setHorizontalAlignment(VerticalPanel.ALIGN_RIGHT);
 		dialogVPanel.add(closeButton);
 		dialogBox.setWidget(dialogVPanel);
+		
+		final DialogBox dialogBox1 = new DialogBox();
+		dialogBox1.setText("Remote Procedure Call");
+		dialogBox1.setAnimationEnabled(true);
+		final Button closeButton1 = new Button("Close");
+		// We can set the id of a widget by accessing its Element
+		closeButton1.getElement().setId("closeButton");
+		VerticalPanel dialogVPanel1 = new VerticalPanel();
+		dialogVPanel1.addStyleName("dialogVPanel");
+		dialogVPanel1.add(new HTML("<br><b>Server replies:</b>"));
+		dialogVPanel1.add(serverResponseLabel);
+		dialogVPanel1.setHorizontalAlignment(VerticalPanel.ALIGN_RIGHT);
+		dialogVPanel1.add(closeButton1);
+		dialogBox1.setWidget(dialogVPanel1);
 
 		// Add a handler to close the DialogBox
 		closeButton.addClickHandler(new ClickHandler() {
 			public void onClick(ClickEvent event) {
 				dialogBox.hide();
-				sendButton.setEnabled(true);
+//				sendButton.setEnabled(true);
 				sendButton.setFocus(true);
+			}
+		});
+		closeButton1.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				dialogBox1.hide();
 			}
 		});
 
@@ -131,22 +155,61 @@ public class Unitech implements EntryPoint {
 				
 				eventDTO.setTitle("firstEvent");
 				eventDTO.setDate(new Date());
-				greetingService.getDeviceData(textToServer, new AsyncCallback<String>() {
+				greetingService.getDeviceData(textToServer, new AsyncCallback<ArrayList<DeviceDTO>>() {
 					public void onFailure(Throwable caught) {
 						// Show the RPC error message to the user
 						dialogBox.setText("Remote Procedure Call - Failure");
 						serverResponseLabel.addStyleName("serverResponseLabelError");
 						serverResponseLabel.setHTML(SERVER_ERROR);
 						dialogBox.center();
+						sendButton.setEnabled(true);
 						closeButton.setFocus(true);
 					}
 
-					public void onSuccess(String result) {
-						dialogBox.setText("Remote Procedure Call");
+					public void onSuccess(final ArrayList<DeviceDTO> result) {
+						/*dialogBox.setText("Remote Procedure Call");
 						serverResponseLabel.removeStyleName("serverResponseLabelError");
 						serverResponseLabel.setHTML(result);
 						dialogBox.center();
-						closeButton.setFocus(true);
+						closeButton.setFocus(true);*/
+						sendButton.setEnabled(true);
+						HorizontalPanel panel = new HorizontalPanel();
+						Button exportButton = new Button("ExportToPDF");
+						exportButton.addClickHandler(new ClickHandler() {
+							@Override
+							public void onClick(ClickEvent event) {
+//								String link = GWT.getModuleBaseURL() + "myfiledownload";
+								greetingService.exportToPdf(result, new AsyncCallback<String>() {
+									public void onFailure(Throwable caught) {
+										// Show the RPC error message to the user
+										dialogBox1.setText("Remote Procedure Call - Failure");
+										serverResponseLabel.addStyleName("serverResponseLabelError");
+										serverResponseLabel.setHTML(SERVER_ERROR);
+										dialogBox1.center();
+										closeButton1.setFocus(true);
+									}
+
+									public void onSuccess(String result) {
+										dialogBox1.setText("Remote Procedure Call");
+										serverResponseLabel.removeStyleName("serverResponseLabelError");
+										serverResponseLabel.setHTML(result);
+										dialogBox1.center();
+										closeButton1.setFocus(true);
+										}
+									});
+							}
+						});
+						panel.add(exportButton);
+						CreateDataGrid dataGrid = new CreateDataGrid();
+						  SplitLayoutPanel splitLayoutPanel = new SplitLayoutPanel();
+						  splitLayoutPanel.addWest(new CreatePieChart(result), 520);
+						  splitLayoutPanel.addNorth(panel, 384);
+						  splitLayoutPanel.add(dataGrid.getDataGrid(result));
+						  RootLayoutPanel.get().add(splitLayoutPanel);
+//						RootLayoutPanel.get().add(new CreatePieChart());
+//						RootLayoutPanel.get().add(dataGrid.getDataGrid());
+//						RootLayoutPanel.get().add(panel);
+						
 					}
 				});
 			}

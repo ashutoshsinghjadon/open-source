@@ -1,5 +1,7 @@
 package com.exam.server;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -8,6 +10,7 @@ import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 
 import com.exam.client.GreetingService;
+import com.exam.client.dto.DeviceDTO;
 import com.exam.server.hibernate.HibernateUtil;
 import com.exam.server.hibernate.model.DeviceData;
 import com.exam.shared.FieldVerifier;
@@ -31,8 +34,9 @@ public class GreetingServiceImpl extends RemoteServiceServlet implements Greetin
 	 * 
 	 */
 	
-	public String getDeviceData(String input) throws IllegalArgumentException {
+	public ArrayList<DeviceDTO> getDeviceData(String input) throws IllegalArgumentException {
 		
+		final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 		Session session=HibernateUtil.getSessionFactory().openSession();
 		Criteria cr = session.createCriteria(DeviceData.class);
 		cr.add(Restrictions.eq("part2Id", Integer.parseInt(input)));
@@ -40,10 +44,23 @@ public class GreetingServiceImpl extends RemoteServiceServlet implements Greetin
 		session.close();
 		JSONObject jObject = new JSONObject();
 		JSONArray jArray = new JSONArray();
+		ArrayList<DeviceDTO> deviceList = new ArrayList<DeviceDTO>();
 		
 		for (Iterator iterator = results.iterator(); iterator.hasNext();)
 		{
-			DeviceData deviceData = (DeviceData) iterator.next(); 
+			DeviceData deviceData = (DeviceData) iterator.next();
+			DeviceDTO deviceDTO = new DeviceDTO();
+			deviceDTO.setPart2Id(deviceData.getPart2Id());
+			deviceDTO.setIdCompany(deviceData.getIdCompany());
+			if(deviceData.getAddress1()!=null)
+			deviceDTO.setAddress1(deviceData.getAddress1());
+			if(deviceData.getData1()!=null)
+			deviceDTO.setData1(deviceData.getData1());
+			if(deviceData.getTime1()!=null)
+			deviceDTO.setTime1(formatter.format(deviceData.getTime1()));
+			if(deviceData.getTime2()!=null)
+			deviceDTO.setTime2(formatter.format(deviceData.getTime2()));
+			deviceList.add(deviceDTO);
 		         JSONObject deviceJson = new JSONObject();
 		         deviceJson.put("idsession", deviceData.getIdSession());
 		         deviceJson.put("idcompany", deviceData.getIdCompany());
@@ -80,8 +97,9 @@ public class GreetingServiceImpl extends RemoteServiceServlet implements Greetin
 		input = escapeHtml(input);
 		String deviceJson = escapeHtml(jObject.toString());
 
-		return "Hello, " + input + "!<br><br>I am running " + serverInfo + ".<br><br>Device data found:<br>"
-				+ deviceJson;
+//		return "Hello, " + input + "!<br><br>I am running " + serverInfo + ".<br><br>Device data found:<br>"
+//				+ deviceJson;
+		return deviceList;
 	}
 
 	/**
@@ -96,5 +114,21 @@ public class GreetingServiceImpl extends RemoteServiceServlet implements Greetin
 			return null;
 		}
 		return html.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+	}
+
+	@Override
+	public String exportToPdf(ArrayList<DeviceDTO> input) {
+		new ConvertPDF(input);
+		
+		String serverInfo = getServletContext().getServerInfo();
+		String userAgent = getThreadLocalRequest().getHeader("User-Agent");
+		
+		String saveInfo="File is saved at location C:/Users/ADMIN/Desktop/UserReport.pdf";
+
+		// Escape data from the client to avoid cross-site script vulnerabilities.
+		 saveInfo = escapeHtml(saveInfo);
+
+		return "Hello, " + input.get(0).getPart2Id() + "!<br><br>I am running " + serverInfo + ".<br><br><br>"
+				+ saveInfo;
 	}
 }

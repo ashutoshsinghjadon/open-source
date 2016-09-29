@@ -5,6 +5,10 @@
 	<inherits name='com.google.gwt.user.User' />
 <!-- 	<inherits name='com.gwtext.GwtExt' /> -->
 	<inherits name='com.google.gwt.user.theme.clean.Clean' />
+	<inherits name="com.googlecode.gwt.charts.Charts"/>
+<!--   <inherits name='com.google.gwt.user.theme.standard.Standard'/> -->
+<!--   <inherits name='com.google.gwt.user.theme.chrome.Chrome'/> -->
+  <!-- <inherits name='com.google.gwt.user.theme.dark.Dark'/>     -->
 
 	<entry-point class='com.exam.client.Unitech' />
 
